@@ -22,8 +22,8 @@ public class ClinwareAgent {
     public static void main(String[] args) {
         // 1. Load Config
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-        String projectId = dotenv.get("GOOGLE_PROJECT_ID"); // REQUIRED!
-        String location = "us-central1"; // Standard Google Cloud region
+        String projectId = dotenv.get("GOOGLE_PROJECT_ID");
+        String location = "us-central1"; 
 
         if (projectId == null) {
             System.err.println("CRITICAL ERROR: GOOGLE_PROJECT_ID is missing in .env file.");
@@ -34,7 +34,6 @@ public class ClinwareAgent {
         try {
             vertexAi = new VertexAI(projectId, location);
 
-            // Manual Schema Definition (Required by Official SDK)
             FunctionDeclaration searchFunc = FunctionDeclaration.newBuilder()
                     .setName("search_news")
                     .setDescription("Searches the internet for news about Clinware, funding, or competitors.")
@@ -51,13 +50,19 @@ public class ClinwareAgent {
                     .addFunctionDeclarations(searchFunc)
                     .build();
 
-            // 3. Build Model (Gemini Pro)
-            GenerativeModel model = new GenerativeModel("gemini-1.5-flash-001", vertexAi);
+            // 3. Build Model (Gemini Pro) using Builder
+            // FIX: Use Builder to set System Instruction
+            GenerativeModel model = new GenerativeModel.Builder()
+                    .setModelName("gemini-1.5-flash-001")
+                    .setVertexAi(vertexAi)
+                    .setSystemInstruction(ContentMaker.fromMultiModalData(
+                            "You are the Clinware Intelligence Agent. Use 'search_news' for questions about Clinware. " +
+                            "If the tool returns no data, admit it. Do not hallucinate."
+                    ))
+                    .build();
+
+            // Set tools on the built model instance
             model.setTools(Arrays.asList(tool));
-            model.setSystemInstruction(ContentMaker.fromMultiModalData(
-                    "You are the Clinware Intelligence Agent. Use 'search_news' for questions about Clinware. " +
-                    "If the tool returns no data, admit it. Do not hallucinate."
-            ));
 
             // 4. Start Session
             chatSession = model.startChat();
@@ -86,7 +91,6 @@ public class ClinwareAgent {
         }
     }
 
-    // This loop handles the "Tool Calling" logic manually
     private static String handleChatTurn(String userMsg) throws IOException {
         // 1. Send User Message
         GenerateContentResponse response = chatSession.sendMessage(userMsg);
@@ -103,16 +107,15 @@ public class ClinwareAgent {
                     String query = call.getArgs().getFieldsMap().get("query").getStringValue();
                     System.out.println("DEBUG: Model calling search_news with: " + query);
                     
-                    // B. Execute Tool (Using your existing McpClient)
+                    // B. Execute Tool
                     String toolResult = new McpClient().searchNews(query);
                     
                     // C. Send Result Back to Model
-                    // We must format the result as a Protobuf Struct
                     Struct resultStruct = Struct.newBuilder()
                             .putFields("content", Value.newBuilder().setStringValue(toolResult).build())
                             .build();
 
-                    Content toolResponse = ContentMaker.fromMultiModalData(
+                    com.google.cloud.vertexai.api.Content toolResponse = ContentMaker.fromMultiModalData(
                             Part.newBuilder()
                                     .setFunctionResponse(
                                             FunctionResponse.newBuilder()
