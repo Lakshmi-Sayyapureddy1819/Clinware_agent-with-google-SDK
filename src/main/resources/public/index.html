@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clinware Intelligence</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 600px;
+            background: white;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: #0a66c2;
+            color: white;
+            padding: 20px;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: #0a66c2;
+            color: white;
+        }
+
+        .agent {
+            align-self: flex-start;
+            background: #e9ecef;
+            color: black;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #0a66c2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">Clinware Agent (Powered by OpenAI + Tavily)</div>
+        <div class="chat-box" id="chat"></div>
+        <div class="input-area">
+            <input type="text" id="in" placeholder="Ask about Clinware news..."
+                onkeypress="if(event.key==='Enter') send()">
+            <button onclick="send()" id="btn">Send</button>
+        </div>
+    </div>
+    <script>
+        async function send() {
+            const inp = document.getElementById('in');
+            const btn = document.getElementById('btn');
+            const chat = document.getElementById('chat');
+            const txt = inp.value.trim();
+            if (!txt) return;
+
+            // Add User Message
+            chat.innerHTML += `<div class="msg user">${txt}</div>`;
+            inp.value = ''; inp.disabled = true; btn.disabled = true;
+
+            // Call Backend
+            try {
+                const res = await fetch('/chat', { method: 'POST', body: txt });
+                const ans = await res.text();
+                chat.innerHTML += `<div class="msg agent">${ans.replace(/\n/g, '<br>')}</div>`;
+            } catch (e) {
+                chat.innerHTML += `<div class="msg agent">Error connecting to server.</div>`;
+            }
+
+            inp.disabled = false; btn.disabled = false; inp.focus();
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

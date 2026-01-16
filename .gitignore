@@ -1,0 +1,21 @@
+.env
+# Maven / Java build artifacts
+target/
+
+# IDEs
+.idea/
+.vscode/
+
+# Maven local repository
+.m2/
+
+# Node
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
