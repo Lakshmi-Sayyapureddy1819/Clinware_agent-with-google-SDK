@@ -12,6 +12,7 @@ import io.javalin.http.staticfiles.Location;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ClinwareAgent {
@@ -51,7 +52,7 @@ public class ClinwareAgent {
                     .build();
 
             // 3. Build Model (Gemini Pro) using Builder
-            // FIX: Use Builder to set System Instruction
+            // FIX: setTools is now called inside the Builder
             GenerativeModel model = new GenerativeModel.Builder()
                     .setModelName("gemini-1.5-flash-001")
                     .setVertexAi(vertexAi)
@@ -59,10 +60,8 @@ public class ClinwareAgent {
                             "You are the Clinware Intelligence Agent. Use 'search_news' for questions about Clinware. " +
                             "If the tool returns no data, admit it. Do not hallucinate."
                     ))
+                    .setTools(Arrays.asList(tool)) 
                     .build();
-
-            // Set tools on the built model instance
-            model.setTools(Arrays.asList(tool));
 
             // 4. Start Session
             chatSession = model.startChat();
