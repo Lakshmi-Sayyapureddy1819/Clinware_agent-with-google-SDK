@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-vertexai</artifactId>
-            <version>1.1.0</version>
+            <version>1.9.0</version>
         </dependency>
 
         <dependency>
@@ -49,8 +49,6 @@
 
     <build>
         <plugins>
-
-            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -61,8 +59,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Run locally with mvn exec:java -->
-           <plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
@@ -71,7 +68,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Create executable shaded JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -83,21 +79,16 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-
                             <createDependencyReducedPom>true</createDependencyReducedPom>
-
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>ClinwareAgent</mainClass>
                                 </transformer>
                             </transformers>
-
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>
